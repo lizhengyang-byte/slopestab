@@ -175,3 +175,56 @@ def test_compare_returns_every_method():
         PLAIN_CIRCLE,
     )
     assert set(results) == {"fellenius", "bishop", "janbu", "spencer", "morgenstern_price"}
+
+
+def _independent_bishop_fs(cx, cy, r, ground, gamma, c, phi_deg, n=30):
+    """Bishop's simplified method written from scratch on hand-built slices.
+
+    Deliberately shares no code with the package: the circle/ground intersections
+    are found by bisection, the slices are equal-width trapezoids, and the base
+    inclination comes from the circle derivative.  It is the referee for the
+    shared slice kernel.
+    """
+    import math
+
+    def base(x):
+        d = r**2 - (x - cx) ** 2
+        return cy - math.sqrt(d) if d > 0.0 else float("nan")
+
+    grid = [0.0 + i * 1e-4 for i in range(250001)]
+    roots = []
+    for x0, x1 in zip(grid[:-1], grid[1:]):
+        f0, f1 = base(x0) - ground(x0), base(x1) - ground(x1)
+        if f0 * f1 < 0.0:
+            roots.append(0.5 * (x0 + x1))
+    if len(roots) != 2:
+        raise AssertionError(f"expected 2 ground intersections, found {len(roots)}")
+
+    edges = [roots[0] + (roots[1] - roots[0]) * k / n for k in range(n + 1)]
+    tan_phi = math.tan(math.radians(phi_deg))
+    fs = 1.0
+    for _ in range(200):
+        num = den = 0.0
+        for i in range(n):
+            x1, x2 = edges[i], edges[i + 1]
+            xm, b = 0.5 * (x1 + x2), x2 - x1
+            w = gamma * b * (ground(xm) - base(xm))
+            slope_base = (xm - cx) / math.sqrt(r**2 - (xm - cx) ** 2)
+            alpha = math.atan(slope_base)
+            m_alpha = math.cos(alpha) + math.sin(alpha) * tan_phi / fs
+            num += (c * b + w * tan_phi) / m_alpha
+            den += w * math.sin(alpha)
+        new = num / den
+        if abs(new - fs) < 1e-12:
+            return new
+        fs = new
+    return fs
+
+
+def test_bishop_matches_an_independent_hand_coded_implementation():
+    def ground(x):
+        return 0.5 * x if x <= 20.0 else 10.0
+
+    hand = _independent_bishop_fs(0.03, 27.70, 27.69, ground, 20.0, 3.0, 19.6)
+    lib = sst.analyze("bishop", ACADS_SLOPE, ACADS_SOIL, ACADS_CIRCLE, n_slices=30).fs
+    assert lib == pytest.approx(hand, rel=0.005), f"library {lib:.4f} vs hand {hand:.4f}"
