@@ -78,7 +78,7 @@ n≥20 后变化 < 0.0004，收敛是单调且平稳的。默认 `n_slices=30` �
 F=\frac{c\,L\,R}{\sum W_i\,(x_i-x_0)}
 \]
 
-用同一算例换成 \(c=40\) kPa、\(\varphi=0\) 检验：
+用同一算例换成 \(c=40\) kPa、\(\varphi=0\)、\(\gamma=20\) kN/m³（沿用 ACADS 土的重度）检验：
 
 | 量 | 值 |
 |---|---|
@@ -92,7 +92,7 @@ Bishop 的残差来自定点迭代只收敛到 \(10^{-4}\)。这个检验的价�
 
 ### 3.2 无限边坡对闭式解
 
-干燥条件 \(F=c/(\gamma z\sin\beta\cos\beta)+\tan\varphi/\tan\beta\)，顺坡渗流
+干燥条件 \(F=c/(\gamma z\sin\beta\cos\beta)+\tan\varphi/\tan\beta\)，顺坡滲流
 \(F=c/(\gamma_{sat}z\sin\beta\cos\beta)+(\gamma'/\gamma_{sat})\tan\varphi/\tan\beta\)：
 
 | z (m) | 干燥（库） | 干燥（手算） | 渗流（库） | 渗流（手算） |
@@ -206,12 +206,12 @@ Bishop 与 Spencer 差 0.4%，与商业软件上这类题的常见差距一致�
 
 ACADS 1(a)、30 条：
 
-| 方法 | \(F_x\) (%) | \(F_y\) (%) | \(M\) (%) |
+| 方法 | $F_x$ (%) | $F_y$ (%) | $M$ (%) |
 |---|---|---|---|
-| Fellenius | +3.4 | −8.0 | 0.00 |
-| Bishop | −1.8 | 0.00 | 0.03 |
-| Janbu（未修正） | −4.4 | +16.9 | +210 |
-| Spencer | 0.00 | 0.00 | 0.00 |
+| Fellenius | +1.63 | −3.70 | 0.00 |
+| Bishop | −1.80 | 0.00 | +0.03 |
+| Janbu（未修正） | −4.38 | +16.86 | +210.4 |
+| Spencer | −0.00 | −0.00 | +0.001 |
 | M-P | 0.00 | −0.03 | −0.01 |
 
 读法：
@@ -234,6 +234,7 @@ benchmark 里对严格法的断言是"残差相对总重 < 0.05%"，取的是绝
 | M-P 可能无 λ 解 | 某些 \(f(x)\) 就是无法同时闭合两个方程 | 最小残差 ≤0.02 时接受并标注 `converged=False` + `note`，否则报错 |
 | 与商业软件差 1–2% | 条底直线近似、面积离散 | 文档明写，验收线 ±1% |
 | 浸润线是静水压 | 不做渗流场 | 需先用其他工具算孔压后传入 |
+| 浸润线画到地面以上 | 孔压会超过条重，有效法向力变负，Fs 失去意义 | 条分阶段直接抛 `ValueError`，报出具体 x 与 `u*b`、`W` 的数值 |
 
 ---
 
@@ -241,7 +242,7 @@ benchmark 里对严格法的断言是"残差相对总重 < 0.05%"，取的是绝
 
 ```bash
 pip install -e ".[all,dev]"
-pytest -q                 # 65 项单测 + 回归
+pytest -q                 # 全部单测 + 回归（69 项）
 pytest -m slow -q         # ACADS 基准与收敛
 python examples/01_quickstart.py
 python examples/02_layered_water.py
