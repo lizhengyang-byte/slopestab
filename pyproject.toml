@@ -1,0 +1,84 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slopestab"
+version = "0.1.0"
+description = "2D slope stability analysis by limit equilibrium methods: Fellenius, Bishop, Janbu, Spencer, Morgenstern-Price"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Li Shangru", email = "lizhengyang-byte@users.noreply.github.com" }]
+keywords = [
+    "slope stability",
+    "limit equilibrium",
+    "geotechnical",
+    "Bishop",
+    "Morgenstern-Price",
+    "factor of safety",
+    "landslide",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ["numpy>=1.20"]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.5"]
+report = ["matplotlib>=3.5"]
+yaml = ["PyYAML>=5.4"]
+all = ["matplotlib>=3.5", "PyYAML>=5.4"]
+dev = ["pytest>=7", "pytest-cov>=4", "ruff>=0.5", "mypy>=1.8", "build>=1.0"]
+
+[project.urls]
+Homepage = "https://github.com/lizhengyang-byte/slopestab"
+Repository = "https://github.com/lizhengyang-byte/slopestab"
+Issues = "https://github.com/lizhengyang-byte/slopestab/issues"
+Documentation = "https://github.com/lizhengyang-byte/slopestab/tree/main/docs"
+
+[project.scripts]
+slopestab = "slopestab.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/slopestab"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "docs", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+extend-exclude = ["docs", "examples/*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# ``l`` is the conventional symbol for slice base length in slope stability.
+"src/slopestab/geometry/slices.py" = ["E741"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "slow: benchmarks that take a few seconds",
+]
+
+[tool.mypy]
+python_version = "3.9"
+files = ["src/slopestab"]
+ignore_missing_imports = true
+warn_unused_ignores = false

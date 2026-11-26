@@ -1,1 +1,31 @@
-x
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Test / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Outputs produced by the examples
+examples/output/
+*.png
+*.csv
+*.html
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
