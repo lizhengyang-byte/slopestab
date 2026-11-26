@@ -13,9 +13,6 @@ Morgenstern-Price or Spencer for final design values.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Any
-
 import numpy as np
 
 from ..exceptions import ConvergenceError
