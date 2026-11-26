@@ -92,7 +92,7 @@ Bishop 的残差来自定点迭代只收敛到 \(10^{-4}\)。这个检验的价�
 
 ### 3.2 无限边坡对闭式解
 
-干燥条件 \(F=c/(\gamma z\sin\beta\cos\beta)+\tan\varphi/\tan\beta\)，顺坡滲流
+干燥条件 \(F=c/(\gamma z\sin\beta\cos\beta)+\tan\varphi/\tan\beta\)，顺坡渗流
 \(F=c/(\gamma_{sat}z\sin\beta\cos\beta)+(\gamma'/\gamma_{sat})\tan\varphi/\tan\beta\)：
 
 | z (m) | 干燥（库） | 干燥（手算） | 渗流（库） | 渗流（手算） |
