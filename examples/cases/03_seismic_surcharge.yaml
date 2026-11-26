@@ -1,0 +1,19 @@
+method: morgenstern_price
+n_slices: 30
+slope:
+  profile: [[0, 0], [10, 0], [30, 10], [50, 10]]
+soil:
+  layers:
+    - {name: silty sand, c: 8.0, phi: 26.0, gamma: 18.5, gamma_sat: 20.0}
+surface: {type: circle, cx: 10.03, cy: 27.70, r: 27.69}
+water: null
+seismic: {kh: 0.15, kv: 0.10}
+surcharge:
+  - {q: 30.0, x_start: 30.0, x_end: 60.0}
+search:
+  cx_range: [0.0, 26.0]
+  cy_range: [11.0, 26.0]
+  r_range: [12.0, 26.0]
+  n_cx: 20
+  n_cy: 12
+  n_r: 10

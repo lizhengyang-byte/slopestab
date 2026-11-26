@@ -1,0 +1,25 @@
+method: spencer
+n_slices: 30
+slope:
+  profile: [[0, 0], [10, 0], [30, 10], [50, 10]]
+soil:
+  layers:
+    - name: fill
+      c: 5.0
+      phi: 25.0
+      gamma: 18.0
+      gamma_sat: 19.5
+      boundary: [[0, 3], [50, 3]]
+    - name: clay
+      c: 15.0
+      phi: 18.0
+      gamma: 19.0
+      gamma_sat: 20.0
+      boundary: [[0, 7], [50, 7]]
+    - {name: bedrock, c: 50.0, phi: 30.0, gamma: 21.0}
+surface: {type: circle, cx: 10.03, cy: 27.70, r: 27.69}
+water:
+  type: phreatic
+  points: [[10, 0.0], [30, 9.0], [50, 9.0]]
+seismic: {kh: 0.0, kv: 0.0}
+surcharge: []

@@ -1,0 +1,11 @@
+method: bishop
+n_slices: 30
+slope:
+  profile: [[0, 0], [20, 10], [30, 10]]
+soil:
+  layers:
+    - {name: homogeneous, c: 3.0, phi: 19.6, gamma: 20.0}
+surface: {type: circle, cx: 0.03, cy: 27.70, r: 27.69}
+water: null
+seismic: {kh: 0.0, kv: 0.0}
+surcharge: []
