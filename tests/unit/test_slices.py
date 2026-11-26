@@ -111,3 +111,29 @@ def test_surface_without_two_intersections_is_rejected():
     small_slope = Slope([(0, 0), (10, 10)])
     with pytest.raises(ValueError):
         build_slices(small_slope, soil, SlipCircle(100, 100, 5))
+
+
+def test_water_table_above_ground_is_rejected():
+    """A phreatic line over the ground surface would give u*b > W - refuse it."""
+    soil = SoilModel([SoilLayer("s", c=5, phi=25, gamma=18, gamma_sat=20)])
+    slope = Slope([(0, 0), (10, 0), (30, 10), (50, 10)])
+    with pytest.raises(ValueError, match="pore pressure exceeds the slice weight"):
+        build_slices(
+            slope,
+            soil,
+            SlipCircle(10.03, 27.70, 27.69),
+            water=PhreaticLine([(10, 0), (30, 12), (50, 12)]),
+        )
+
+
+def test_water_table_at_ground_surface_is_allowed():
+    """Saturation all the way to the surface is physical: u*b stays below W."""
+    soil = SoilModel([SoilLayer("s", c=5, phi=25, gamma=18, gamma_sat=20)])
+    slope = Slope([(0, 0), (10, 0), (30, 10), (50, 10)])
+    slices = build_slices(
+        slope,
+        soil,
+        SlipCircle(10.03, 27.70, 27.69),
+        water=PhreaticLine([(10, 0), (30, 10), (50, 10)]),
+    )
+    assert np.all(slices.u * slices.b <= slices.w + 1e-9)

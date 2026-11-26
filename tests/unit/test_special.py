@@ -83,3 +83,17 @@ def test_wedge_rejects_invalid_inputs():
         sst.planar_wedge(SLOPE, SOIL, x_toe=30.0, x_top=10.0)
     with pytest.raises(ValueError):
         sst.planar_wedge(SLOPE, SOIL, x_toe=10.0, x_top=40.0, crack_depth=2.0, water_depth=3.0)
+
+
+def test_wedge_matches_the_hand_formula():
+    """Triangle toe(10,0)-crest(30,10)-crack(40,10): A=50, W=900, L=31.623, psi=18.43."""
+    res = sst.planar_wedge(SLOPE, SOIL, x_toe=10.0, x_top=40.0)
+    assert res.area == pytest.approx(50.0, rel=1e-9)
+    assert res.weight == pytest.approx(900.0, rel=1e-9)
+    assert res.plane_length == pytest.approx(31.6228, rel=1e-6)
+    assert res.plane_angle_deg == pytest.approx(18.4349, abs=1e-4)
+    expected = (
+        15.0 * res.plane_length
+        + 900.0 * math.cos(math.radians(18.4349)) * math.tan(math.radians(30.0))
+    ) / (900.0 * math.sin(math.radians(18.4349)))
+    assert res.fs == pytest.approx(expected, rel=1e-3)
