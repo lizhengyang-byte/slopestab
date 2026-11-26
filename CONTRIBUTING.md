@@ -32,7 +32,7 @@ python -m build && twine check dist/*   # 打包自检
 任何影响安全系数的改动（公式、条分、孔压、重度取值）都要同时更新：
 
 1. `tests/benchmarks/test_acads.py` 里的期望值；
-2. `docs/validation.md` 里对应的表格；
+2. `docs/validation.md` 里对应的表格，以及 `README.md` / `README.en.md` 的验证表；
 3. 如果偏差超过 ±1%，在 PR 描述里写清楚**为什么**是改动正确而不是引入了新错误
    （最好附一条能区分新旧实现的算例）。
 
@@ -53,7 +53,8 @@ python -m build && twine check dist/*   # 打包自检
 
 ## 5. 代码风格
 
-- 注释与 docstring 用**英文**，用户文档用**中文**（英文摘要放 README 末尾）。
+- 注释与 docstring 用**英文**；用户文档用**中文**，但 README 必须双语：
+  `README.md`（中文）与 `README.en.md`（英文）结构一一对应，改一处要同步另一处。
 - 行宽 100，`ruff` 说了算；`l`（条底长）在 `geometry/slices.py` 里是行业习惯符号，
   该文件的 `E741` 已单独豁免。
 - 不做"静默纠正"：几何非法、迭代发散、净驱动力 ≤0 一律抛异常，不许返回一个看起来

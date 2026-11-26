@@ -29,6 +29,12 @@ versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   CLI.
 - Verification suite: ACADS 1(a) benchmark, undrained moment identity,
   closed-form infinite slope, cross-method agreement, CI on Python 3.9/3.11/3.13.
+- A referee test that recomputes Bishop's simplified method from scratch (own
+  circle/ground intersections, own equal-width slices, own `m_alpha` iteration)
+  and must agree with the library to 0.5%; plus hand-formula checks for the
+  planar wedge and a mass-conservation check against a shoelace polygon.
+- Bilingual documentation: `README.md` (Chinese) and `README.en.md` (English),
+  kept structurally parallel.
 
 ### Fixed
 
@@ -44,6 +50,11 @@ versioning: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   error or a silently wrong number.
 - Section drawing: the slide mass is now filled as a polygon between the slip
   surface and the ground, and the legend no longer repeats the title.
+- A phreatic line above the ground surface used to run silently: pore pressure
+  exceeded the slice weight, effective normal forces went negative and Bishop
+  returned a meaningless `Fs = 0.46` with `converged=True`.  The slice builder
+  now rejects that input with a `ValueError` naming the offending abscissa and
+  quoting `u*b` versus `W`.
 
 ### Known limitations
 

@@ -1,17 +1,17 @@
 name: publish
 
+# 状态：暂未启用（PyPI 发布按用户要求暂缓）。文件保留，需要发布时按下面两步启用即可。
 # Publish to PyPI with Trusted Publishing (OIDC) - no API token is stored anywhere.
 #
-# One-time setup by the owner (2 minutes, on pypi.org):
-#   https://pypi.org/manage/account/publishing/  ->  "Add a pending publisher"
+# One-time setup by the owner:
+#   https://pypi.org/manage/account/publishing/  ->  "Add a new pending publisher"
 #     PyPI project name : slopestab
 #     Owner             : lizhengyang-byte
 #     Repository name   : slopestab
 #     Workflow name     : publish.yml
 #     Environment       : pypi
-# Then publish a GitHub Release with tag v0.1.0 (Releases -> Draft a new release
-# -> pick tag v0.1.0 -> Publish release).  That fires this workflow and uploads.
-# Alternative triggers: pushing a v* tag, or Actions -> publish -> Run workflow.
+# Then trigger this workflow by publishing a GitHub Release (tag v0.1.0) or
+# manually from the Actions tab.
 
 on:
   release:

@@ -47,6 +47,7 @@ Homepage = "https://github.com/lizhengyang-byte/slopestab"
 Repository = "https://github.com/lizhengyang-byte/slopestab"
 Issues = "https://github.com/lizhengyang-byte/slopestab/issues"
 Documentation = "https://github.com/lizhengyang-byte/slopestab/tree/main/docs"
+Changelog = "https://github.com/lizhengyang-byte/slopestab/blob/main/CHANGELOG.md"
 
 [project.scripts]
 slopestab = "slopestab.cli:main"
@@ -55,12 +56,21 @@ slopestab = "slopestab.cli:main"
 packages = ["src/slopestab"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src", "tests", "examples", "docs", "README.md", "LICENSE", "CHANGELOG.md"]
+include = [
+    "src",
+    "tests",
+    "examples",
+    "docs",
+    "README.md",
+    "README.en.md",
+    "LICENSE",
+    "CHANGELOG.md",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py39"
-extend-exclude = ["docs", "examples/*.ipynb"]
+extend-exclude = ["docs", "README.md", "README.en.md", "examples/*.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM"]
