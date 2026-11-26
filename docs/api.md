@@ -67,7 +67,7 @@ sst.PolylineSurface([(x0, y0), (x1, y1), ...])  # 折线（任意形状）
 
 `SlipCircle` 上还能直接读 `cx`、`cy`、`r`；`PolylineSurface` 读 `points`。
 
-### `build_slices(slope, soil, surface, water=None, surcharge=None, surcharges=None, seismic=None, n_slices=30)`
+### `build_slices(slope, soil, surface, water=None, surcharges=None, seismic=None, n_slices=30)`
 
 生成条分表，返回 `SliceSet`。一般不用直接调，`analyze()` 内部会调；需要自己改切点时用它。
 
@@ -79,12 +79,15 @@ sst.PolylineSurface([(x0, y0), (x1, y1), ...])  # 折线（任意形状）
 | `y_base, y_ground, h` | 条底高程、地表高程、条高 |
 | `l, c, phi, tan_phi` | 底边长、该条黏聚力与内摩擦角（按层取值） |
 | `w, w_eff` | 条重与含超载的有效条重（kN/m） |
-| `kh_force, kv_force` | 水平/竖向惯性力（kN/m） |
+| `kh_force` | 水平惯性力（kN/m，已含滑动方向符号；竖向分量并入 `w_eff`） |
 | `u` | 条底孔压（kPa） |
 | `sin_a, cos_a` | 条底倾角的正余弦（见 `docs/methods.md` §2 的符号约定） |
 | `ux, uy, nx, ny` | 单位切向/法向量 |
 | `x_ref, y_ref` | 力矩参考点（圆弧取圆心，折线取均值点） |
-| `layer_index` | 每条落在哪一层，便于排查 |
+| `y_c, area` | 条重心纵坐标与条面积（m²） |
+| `layer_index, water_table` | 每条落在哪一层、该位置的浸润线高程（无水为 NaN） |
+| `slide_dir` | 滑动方向符号，`-1` 表示物质向左下运动 |
+| `notes` | 切点加密等过程中的说明 |
 | `surface_kind` | `"circle"` 或 `"polyline"` |
 
 辅助方法：`.as_table()`（dict 列表）、`.to_dataframe()`（pandas）、`.total_weight`、`.span`。
@@ -99,7 +102,7 @@ sst.PolylineSurface([(x0, y0), (x1, y1), ...])  # 折线（任意形状）
 | `RuCoefficient(ru)` | 孔压比 \(u=\rho_u\gamma z\)，快速估算 |
 | `PhreaticLine(points, gamma_w=9.81)` | 浸润线，静水压 \(u=\gamma_w(h_{water}-y_{base})\) |
 | `Seismic(kh, kv=0.0)` | 拟静力地震，`kh` 沿滑动方向，`kv` 向下为正 |
-| `UniformSurcharge(q, x_start, x_end)` | 均布超载（kPa），可给多个 |
+| `UniformSurcharge(q, x_start=-inf, x_end=+inf)` | 均布超载（kPa），可给多个；两端缺省即全坡面 |
 | `SurchargeSet([...])` | 超载集合，多个时用 |
 
 ```python
@@ -108,8 +111,9 @@ seismic = sst.Seismic(kh=0.15)
 surcharge = sst.UniformSurcharge(q=30, x_start=25, x_end=50)
 ```
 
-孔压约定：压为正，作用在条底法向。**浸润线必须低于地面**，否则孔压会超过条重，
-Bishop/Janbu 会抛 `ConvergenceError` 并提示检查水位——这是有意设计的护栏。
+孔压约定：压为正，作用在条底法向。**浸润线不得高于地面**：一旦某条的 \(u b\) 超过条重 \(W\)，
+条分阶段就抛 `ValueError`，报出具体 x、\(u b\) 与 \(W\) 的数值——这是有意设计的护栏，
+因为此时有效法向力已为负，算出的 Fs 没有物理意义。
 
 ---
 
@@ -167,7 +171,7 @@ for name, r in results.items():
 sst.fellenius(slices)
 sst.bishop(slices, max_iter=200, tol=1e-4)
 sst.janbu(slices, f0=1.05, max_iter=200, tol=1e-4)
-sst.spencer(slices, max_iter=80, tol=1e-6)
+sst.spencer(slices, fs0=None, lam0=0.3, tol=1e-6, max_iter=80)
 sst.morgenstern_price(slices, f="half_sine", lam_range=(-0.2, 1.2), n_scan=31, tol=1e-5)
 ```
 
@@ -183,8 +187,8 @@ M-P 的 `f` 支持 `"constant"`、`"half_sine"`、`"trapezoid"`、`"sine"` 或�
 
 ### `SearchGrid(cx_range, cy_range, r_range, n_cx=24, n_cy=14, n_r=12)`
 
-`SearchGrid.default(slope)` 由坡高推导：x 覆盖 \([x_{min}-0.5H,\ x_{max}+0.5H]\)，
-y 从坡顶附近到 \(4H\)，半径从 \(0.6H\) 到 \(3H\) 量级。默认网格 24×14×12 = 4032 个圆。
+`SearchGrid.default(slope)` 由坡高 \(H\) 推导：`cx_range = (x_min − 0.1H, x_min + 2.6H)`，
+`cy_range = (y_max + 0.05H, y_max + 2.8H)`，`r_range = (0.5H, 3.2H)`。默认网格 24×14×12 = 4032 个圆。
 
 ### `search_circular(slope, soil, method="bishop", grid=None, n_slices=20, refine=True, refine_candidates=3, refine_n_slices=30, max_refine_iter=60, water=None, surcharges=None, seismic=None, progress=None)`
 
@@ -282,8 +286,8 @@ slopestab methods
 |---|---|---|
 | `SlopestabError` | 基类 | — |
 | `GeometryError` | 几何非法：滑面与坡面不相交、非圆弧配严格法 | 检查滑面与坡线范围 |
-| `ConvergenceError` | 迭代不收敛/非物理 Fs（含孔压超过条重） | 检查水位是否低于地面、条数是否过少 |
+| `ConvergenceError` | 迭代到非物理 Fs（≤ 0）或 M-P 找不到 λ | 调大 `max_iter`、加条数，或换方法/重选滑面 |
 | `ArithmeticError` | 净驱动力 ≤0，滑面不是可动机构 | 换滑面，或确认滑动方向 |
-| `ValueError` | 构造参数越界（c<0、phi≥90、profile 未递增等） | 按提示修正输入 |
+| `ValueError` | 构造参数越界（c<0、phi≥90、profile 未递增等）；孔压超过条重（浸润线高于地面，报 x 与 `u*b`、`W`） | 按提示修正输入，或降低水位 |
 
-`ConvergenceError` 带 `fs` 属性（最后一次迭代值），便于判断是"差一点"还是"完全跑飞"。
+`ConvergenceError` 带 `last_fs` 属性（最后一次迭代值），便于判断是"差一点"还是"完全跑飞"。
