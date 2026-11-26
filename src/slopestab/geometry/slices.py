@@ -142,8 +142,9 @@ def build_slices(
     Raises
     ------
     ValueError
-        If the surface does not intersect the ground surface twice, or if the
-        resulting sliding mass is empty.
+        If the surface does not intersect the ground surface twice, if the
+        resulting sliding mass is empty, or if the pore pressure anywhere
+        exceeds the slice weight (water table drawn above the ground).
     """
     water = water or NoWater()
     surcharges = surcharges or SurchargeSet()
@@ -254,6 +255,19 @@ def build_slices(
     tan_phi = np.tan(np.radians(phi_arr))
     w_eff = w * (1.0 + seismic.kv)
     kh_force = seismic.kh * w * slide_dir
+
+    # A water table above the ground surface drives the pore pressure past the
+    # slice weight, which makes the effective normal force negative and turns the
+    # factor of safety into a meaningless number.  Refuse instead of reporting it.
+    if np.any(u_press * b > w + 1e-9):
+        worst = int(np.argmax(u_press * b - w))
+        raise ValueError(
+            "pore pressure exceeds the slice weight at x="
+            f"{float(x_mid[worst]):.2f} m (u*b={float(u_press[worst] * b[worst]):.2f} kN/m vs "
+            f"W={float(w[worst]):.2f} kN/m): the water table is above the ground surface. "
+            "Lower the phreatic line to or below the ground surface, or model the artesian "
+            "pressure explicitly with r_u / a pressure grid."
+        )
 
     y_c = np.where(w > 0.0, moment_y / np.where(w > 0, w, 1.0), 0.5 * (y_base + y_ground))
 
