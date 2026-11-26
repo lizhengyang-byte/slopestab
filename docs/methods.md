@@ -62,9 +62,12 @@
 
 \[
 l_i = \sqrt{b_i^2 + (y_{i+1}-y_i)^2},\qquad
-\sin\alpha_i = \frac{-(y_{i+1}-y_i)}{l_i}\cdot(\pm),\qquad
+\sin\alpha_i = \frac{-\,\mathrm{sd}\,(y_{i+1}-y_i)}{l_i},\qquad
 \cos\alpha_i>0
 \]
+
+其中 `sd` 是滑动方向符号（见 §2）。滑面在滑动方向上下降时 \(y_{i+1}<y_i\)，
+按上式得 \(\sin\alpha_i>0\)，于是驱动力恒为 \(\sum W\sin\alpha\) 的正贡献。
 
 条高 \(h_i\) 由坡面（或其上的超载面）与条底的高差给出；条重按**层界与水线分段积分**：
 
@@ -232,9 +235,11 @@ F=f_0\,\frac{\sum\dfrac{c_i'b_i+\left(W^{eff}_i-u_ib_i-k_hW_i\sin\alpha_i\right)
 3. 若整段都不变号但 \(|F_m-F_f|\) 的最小值 \(\le 0.02\)，接受该 \(\lambda\) 并在
    `info["note"]` 写明"没有严格夹逼"；否则抛 `ConvergenceError`。
 
-第 3 条是实证结果：三层土 + 浸润线的算例里，`half_sine` 的残差最小约 0.002，
-再细扫也夹不出零点——这时给一个诚实的近似解比报错更合理，但必须让它可见
-（`converged=False` + `note`）。
+第 3 条是一条**兜底**：某些 \(f(x)\) 确实不存在同时闭合两式的 \(\lambda\)（例如全波 `sine`
+在部分区间反号时）。这时给一个诚实的近似解比报错更合理，但必须让它可见
+（`converged=False` + `info["note"]` 写出最小残差）。仓库当前的算例都能找到严格的
+\(\lambda\) 夹逼，所以这条分支平时不触发；它存在是为了不在罕见输入上抛出一个
+没有解释的错误。
 
 ---
 
@@ -274,11 +279,12 @@ F=\frac{c'}{\gamma_{sat}z\sin\beta\cos\beta}
 - `_newton_2d`：Spencer 的二维 Newton，数值 Jacobian + 线搜索（步长对半折减直到残差下降）。
 - `_nelder_mead`：搜索阶段的局部精修，单形反射/扩张/收缩/压缩，无梯度。
 
-不收敛时有三种明确结果，不会静默给错数：
+失败时会给出明确结果，不会静默给错数：
 
 | 情形 | 抛出 |
 |---|---|
-| 迭代到非物理 \(F\le0\)（孔压超过条重） | `ConvergenceError`（提示检查水位是否高于地面） |
+| 孔压超过条重（浸润线画到地面以上） | `ValueError`（在条分阶段就拦下，报出具体 x 与 \(u b\)、\(W\)） |
+| 迭代到非物理 \(F\le0\) | `ConvergenceError`（附最后一次迭代的 `last_fs`） |
 | 净驱动力 \(\le0\)（不是可动机构） | `ArithmeticError` |
 | 力矩方程无定义（非圆弧配严格法） | `GeometryError` |
 
